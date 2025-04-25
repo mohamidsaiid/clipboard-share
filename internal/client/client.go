@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/url"
 	"os"
-	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/mohamidsaiid/uniclipboard/internal/clipboard"
@@ -19,17 +18,12 @@ type Client struct {
 	newWrittenDataUni chan struct{}
 }
 
-func NewClient(URL url.URL) (*Client, error) {
+func NewClient(URL url.URL, clipboard *uniclipboard.UniClipboard) (*Client, error) {
 	conn, err := newWebsocketConn(URL)
 	if err != nil {
 		return nil, err
 	}
-	clipboard := &uniclipboard.UniClipboard{
-		LocalClipboard: uniclipboard.Message{},
-		UniClipboard: uniclipboard.Message{},
-		TemporaryClipboardTimeout: time.Minute * 15,
-		NewDataWrittenLocaly: make(chan struct{}),
-	}
+	
 
 	return &Client{
 		conn:      conn,

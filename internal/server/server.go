@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/gorilla/websocket"
+	uniclipboard "github.com/mohamidsaiid/uniclipboard/internal/clipboard"
 )
 
 type config struct {
@@ -17,9 +18,10 @@ type Server struct {
 	Clients map[*websocket.Conn]bool
 	Cfg   config
 	Logger *log.Logger
+	clipboard *uniclipboard.UniClipboard
 }
 
-func NewServer(port string) *Server {
+func NewServer(port string, clipboard *uniclipboard.UniClipboard) *Server {
 	return &Server{
 		Clients: make(map[*websocket.Conn]bool),
 		Cfg: config{
@@ -27,6 +29,7 @@ func NewServer(port string) *Server {
 			Env:  "development",
 		},
 		Logger: log.New(os.Stdout, "", log.Ldate|log.Ltime),
+		clipboard: clipboard,
 	}
 }
 

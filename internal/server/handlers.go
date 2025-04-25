@@ -5,19 +5,19 @@ import (
 	"sync"
 
 	"github.com/gorilla/websocket"
+	uniclipboard "github.com/mohamidsaiid/uniclipboard/internal/clipboard"
 	"github.com/mohamidsaiid/uniclipboard/internal/jsonParser"
+	"golang.design/x/clipboard"
 )
 
 type Message struct {
 	sender *websocket.Conn
-	data []byte
+	data   uniclipboard.Message
 }
 
 var upgrader = websocket.Upgrader{}
 var broadcast = make(chan Message)
 var mutex = &sync.Mutex{}
-
-
 
 func (srvr *Server) healthcheckHandler(w http.ResponseWriter, r *http.Request) {
 	data := map[string]bool{
@@ -44,7 +44,7 @@ func (srvr *Server) clipboardHandler(w http.ResponseWriter, r *http.Request) {
 	mutex.Unlock()
 
 	for {
-		_, message, err := conn.ReadMessage()
+		messageType, message, err := conn.ReadMessage()
 		if err != nil {
 			srvr.logError(r, err)
 			mutex.Lock()
@@ -53,13 +53,30 @@ func (srvr *Server) clipboardHandler(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 
-		broadcast <- Message{sender: conn, data: message}
+		if messageType == websocket.BinaryMessage {
+			broadcast <- Message{sender: conn, data: uniclipboard.Message{
+				Type: clipboard.FmtImage,
+				Data: message,
+			}}
+			if messageType == websocket.TextMessage {
+				broadcast <- Message{sender: conn, data: uniclipboard.Message{
+					Type: clipboard.FmtText,
+					Data: message,
+				}}
+			}
+		}
 	}
 }
 
 func (srvr *Server) handleMessages() {
 	for {
 		message := <-broadcast
+		var messageType int
+		if message.data.Type == clipboard.FmtText {
+			messageType = websocket.TextMessage
+		} else {
+			messageType = websocket.BinaryMessage
+		}
 
 		mutex.Lock()
 		for client := range srvr.Clients {
@@ -67,7 +84,7 @@ func (srvr *Server) handleMessages() {
 				continue
 			}
 
-			err := client.WriteMessage(websocket.TextMessage, message.data)
+			err := client.WriteMessage(messageType, message.data.Data)
 			if err != nil {
 				client.Close()
 				delete(srvr.Clients, client)
@@ -76,3 +93,20 @@ func (srvr *Server) handleMessages() {
 		mutex.Unlock()
 	}
 }
+
+func (srvr *Server) lastCopiedData(w http.ResponseWriter, r *http.Request) {
+	//srvr.Logger.Println(*srvr.clipboard.UniClipboard)
+	//srvr.Logger.Println(*srvr.clipboard)
+	//srvr.Logger.Println(string(srvr.clipboard.ReadHanlder(clipboard.FmtText).Data))
+	var err error
+	if srvr.clipboard.UniClipboard.Data != nil {
+		err = jsonParser.WriteJSON(w, http.StatusOK, map[string]any{"message":string(srvr.clipboard.UniClipboard.Data)},nil)
+	} else {
+		err = jsonParser.WriteJSON(w, http.StatusOK, map[string]any{"message" : string(srvr.clipboard.ReadHanlder(clipboard.FmtText).Data)}, nil)
+	}
+	if err != nil {
+		srvr.serverErrorResponse(w, r, err)
+	}
+}
+//, "test" : []any{"uniclip", srvr.clipboard}
+//, "test" : []any{"origiclip", srvr.clipboard}

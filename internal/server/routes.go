@@ -11,6 +11,7 @@ func (srvr *Server) routes() *httprouter.Router{
 	
 	router.HandlerFunc(http.MethodGet, "/healthcheck", srvr.healthcheckHandler)
 	router.HandlerFunc(http.MethodGet, "/clipboard", srvr.clipboardHandler)	
+	router.HandlerFunc(http.MethodGet, "/clipboarddata", srvr.lastCopiedData)
 	go srvr.handleMessages()
 	return router
 }

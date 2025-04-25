@@ -8,7 +8,7 @@ import (
 
 	uniclipboard "github.com/mohamidsaiid/uniclipboard/internal/clipboard"
 	"github.com/mohamidsaiid/uniclipboard/internal/client"
-_	"github.com/mohamidsaiid/uniclipboard/internal/discovery"
+	_"github.com/mohamidsaiid/uniclipboard/internal/discovery"
 	"github.com/mohamidsaiid/uniclipboard/internal/server"
 )
 
@@ -17,8 +17,10 @@ start:
 	log.Println("Starting application...")
 
 	log.Println("discovering valid server...")
-	//URL, err := discovery.ValidServer(baseURL, port, 2, 254)
-	//log.Println(URL.String())
+	//URL, err := discovery.ValidServer(baseURL, port,"/api/v1/healthcheck", 2, 254)
+	//if err != nil {
+		//return err
+	//}
 
 	clipboard := &uniclipboard.UniClipboard{
 		UniClipboard: nil,

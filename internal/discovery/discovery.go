@@ -10,16 +10,16 @@ import (
 	"github.com/mohamidsaiid/uniclipboard/internal/discovery/network"
 )
 
-func ValidServer(baseURL string, port string, start, end int) (url.URL, error) {
+func ValidServer(baseURL string, port string, path string, start, end int) (url.URL, error) {
 	srvrs := &network.Servers{
-		Wg:          &sync.WaitGroup{},
-		BaseURL:     baseURL,
-		Port:        port,
-		ValidServer: make(chan url.URL),
+		Wg:           &sync.WaitGroup{},
+		BaseURL:      baseURL,
+		Port:         port,
+		ValidServer:  make(chan url.URL),
 		FinishedReqs: make(chan bool),
 	}
 
-	loopThroughServers(start, end, srvrs)
+	loopThroughServers(path, start, end, srvrs)
 
 	go func() {
 		srvrs.Wg.Wait()
@@ -36,10 +36,10 @@ func ValidServer(baseURL string, port string, start, end int) (url.URL, error) {
 	}
 }
 
-func loopThroughServers(i, end int, s *network.Servers) {
+func loopThroughServers(path string, i, end int, s *network.Servers) {
 	for i <= end {
 		ip := fmt.Sprintf("%s.%d%s", s.BaseURL, i, s.Port)
-		URL := url.URL{Scheme: "http", Host: ip, Path: "/api/v1/healthcheck"}
+		URL := url.URL{Scheme: "http", Host: ip, Path: path}
 
 		go func() {
 			resp, err := s.RequestServer(URL)

@@ -39,7 +39,7 @@ func ValidServer(baseURL string, port string, start, end int) (url.URL, error) {
 func loopThroughServers(i, end int, s *network.Servers) {
 	for i <= end {
 		ip := fmt.Sprintf("%s.%d%s", s.BaseURL, i, s.Port)
-		URL := url.URL{Scheme: "http", Host: ip, Path: "/healthcheck"}
+		URL := url.URL{Scheme: "http", Host: ip, Path: "/api/v1/healthcheck"}
 
 		go func() {
 			resp, err := s.RequestServer(URL)

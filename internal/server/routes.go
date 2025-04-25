@@ -9,9 +9,9 @@ import (
 func (srvr *Server) routes() *httprouter.Router{
 	router := httprouter.New()
 	
-	router.HandlerFunc(http.MethodGet, "/healthcheck", srvr.healthcheckHandler)
-	router.HandlerFunc(http.MethodGet, "/clipboard", srvr.clipboardHandler)	
-	router.HandlerFunc(http.MethodGet, "/clipboarddata", srvr.lastCopiedData)
+	router.HandlerFunc(http.MethodGet, "/api/v1/healthcheck", srvr.healthcheckHandler)
+	router.HandlerFunc(http.MethodGet, "/api/v1/clipboard", srvr.clipboardHandler)	
+	router.HandlerFunc(http.MethodGet, "/api/v1/clipboarddata", srvr.lastCopiedData)
 	go srvr.handleMessages()
 	return router
 }

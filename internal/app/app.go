@@ -29,7 +29,7 @@ start:
 		//log.Println(err)
 		srvr := server.NewServer(port, clipboard)
 		go srvr.Start()
-		URL := url.URL{Scheme: "ws", Host: fmt.Sprintf("127.0.0.1%s",port), Path:"/clipboard"}
+		URL := url.URL{Scheme: "ws", Host: fmt.Sprintf("127.0.0.1%s",port), Path:"/api/v1/clipboard"}
 	//}
 
 	time.Sleep(2 * time.Second)

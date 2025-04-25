@@ -12,7 +12,7 @@ type Servers struct {
 	Wg  *sync.WaitGroup
 	BaseURL string
 	Port string
-	ValidServer chan(*url.URL)
+	ValidServer chan(url.URL)
 	FinishedReqs chan(bool)
 }
 

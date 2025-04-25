@@ -24,14 +24,13 @@ func NewServer(port string) *Server {
 		Clients: make(map[*websocket.Conn]bool),
 		Cfg: config{
 			Port: port,
+			Env:  "development",
 		},
 		Logger: log.New(os.Stdout, "", log.Ldate|log.Ltime),
 	}
 }
 
 func (s *Server) Start() {
-	s.Logger.Println("Starting server on port", s.Cfg.Port)
-	// Start the server logic here
 	srv := &http.Server{
 		Addr : s.Cfg.Port,
 		Handler: s.routes(),

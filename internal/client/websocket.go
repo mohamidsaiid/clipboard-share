@@ -4,6 +4,8 @@ import (
 	"net/url"
 
 	"github.com/gorilla/websocket"
+	uniclipboard "github.com/mohamidsaiid/uniclipboard/internal/clipboard"
+	"golang.design/x/clipboard"
 )
 
 func newWebsocketConn(url url.URL) (*websocket.Conn, error) {
@@ -14,22 +16,34 @@ func newWebsocketConn(url url.URL) (*websocket.Conn, error) {
 	return conn, nil
 }
 
-func (cl *Client) sendMessage(message []byte) error {
-	err := cl.conn.WriteMessage(websocket.TextMessage, message)
+func (cl *Client) sendMessage() error {
+	var messageType int
+	if cl.clipboard.LocalClipboard.Type == clipboard.FmtText {
+		messageType = websocket.TextMessage
+	} else {
+		messageType = websocket.BinaryMessage
+	}
+	
+	err := cl.conn.WriteMessage(messageType, cl.clipboard.LocalClipboard.Data)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
-func (cl *Client) receiveMessage() []byte {
-	_, message, err := cl.conn.ReadMessage()
+func (cl *Client) receiveMessage() uniclipboard.Message {
+	messageType, message, err := cl.conn.ReadMessage()
 	if err != nil {
 		cl.logger.Println("read: ", err)
 		cl.close()
-		return nil
+		return uniclipboard.Message{}
 	}
-	return message
+	cl.newWrittenDataUni <- struct{}{}	
+	return uniclipboard.Message{
+		Type: clipboard.Format(messageType),
+		Data: message,
+	}
 }
 
 func (cl *Client) close() error {
@@ -41,8 +55,10 @@ func (cl *Client) close() error {
 	return nil
 }
 
-func (cl *Client) reciveMessagesHandler() {
+func (cl *Client) reciveWebsocketMessagesHandler() {
 	for {
-		cl.uniClipboard <- cl.receiveMessage()
+		cl.newWrittenDataUni <- struct{}{}
+		cl.clipboard.UniClipboard = cl.receiveMessage()
 	}
 }
+

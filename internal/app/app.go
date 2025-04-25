@@ -29,7 +29,10 @@ start:
 	time.Sleep(2 * time.Second)
 	log.Println("Connecting to server...")
 
-	cl := client.NewClient(URL)
+	cl, err := client.NewClient(URL)
+	if err != nil {
+		return err
+	}
 
 	log.Println("Connected to server")
 	log.Println(cl.StartClient())

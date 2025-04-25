@@ -16,7 +16,4 @@ func main() {
 	}
 	
 	log.Println(app.StartApp(os.Getenv("BASE_URL"), os.Getenv("PORT")))
-	log.Println("Application started with BASE_URL:", os.Getenv("BASE_URL"))
-	log.Println("Listening on PORT:", os.Getenv("PORT"))
-	log.Println("Server is running...")
 }

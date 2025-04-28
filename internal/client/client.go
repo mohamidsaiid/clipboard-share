@@ -36,19 +36,19 @@ func NewClient(URL url.URL, clipboard *uniclipboard.UniClipboard) (*Client, erro
 }
 
 func (cl *Client) StartClient() error {
-	go cl.reciveWebsocketMessagesHandler()
+	go cl.receiveMessage()
 	go cl.clipboard.WatchHandler()
 
 	for {
 		select {
-		case <-cl.clipboard.NewDataWrittenLocaly:
+		case message:= <-cl.clipboard.LocalClipboard:
 			log.Println("new written data localy signal recieved")
-			log.Println(string(cl.clipboard.UniClipboard.Data))
-			cl.sendMessage()
-		case <-cl.newWrittenDataUni:
+			log.Println(string(message.Data))
+			cl.sendMessage(message)
+		case message := <-cl.clipboard.UniClipboard:
 			log.Println("new written data uni signal recieved")
-			log.Println(string(cl.clipboard.UniClipboard.Data))
-			go cl.clipboard.WriteTemporaryHanlder()
+			log.Println(string(message.Data))
+			go cl.clipboard.WriteTemporaryHanlder(message)
 		case <-cl.closeConn:
 			log.Println("the conncetion is closed signal recieved")
 			return errors.New("closing connection")

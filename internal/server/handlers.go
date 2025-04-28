@@ -95,18 +95,6 @@ func (srvr *Server) handleMessages() {
 }
 
 func (srvr *Server) lastCopiedData(w http.ResponseWriter, r *http.Request) {
-	//srvr.Logger.Println(*srvr.clipboard.UniClipboard)
-	//srvr.Logger.Println(*srvr.clipboard)
-	//srvr.Logger.Println(string(srvr.clipboard.ReadHanlder(clipboard.FmtText).Data))
-	var err error
-	if srvr.clipboard.UniClipboard.Data != nil {
-		err = jsonParser.WriteJSON(w, http.StatusOK, map[string]any{"message":string(srvr.clipboard.UniClipboard.Data)},nil)
-	} else {
-		err = jsonParser.WriteJSON(w, http.StatusOK, map[string]any{"message" : string(srvr.clipboard.ReadHanlder(clipboard.FmtText).Data)}, nil)
-	}
-	if err != nil {
-		srvr.serverErrorResponse(w, r, err)
-	}
 }
 //, "test" : []any{"uniclip", srvr.clipboard}
 //, "test" : []any{"origiclip", srvr.clipboard}

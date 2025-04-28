@@ -1,7 +1,6 @@
 package client
 
 import (
-	"fmt"
 	"net/url"
 
 	"github.com/gorilla/websocket"
@@ -17,16 +16,15 @@ func newWebsocketConn(url url.URL) (*websocket.Conn, error) {
 	return conn, nil
 }
 
-func (cl *Client) sendMessage() error {
+func (cl *Client) sendMessage(message *uniclipboard.Message) error {
 	var messageType int
-	if cl.clipboard.UniClipboard.Type == clipboard.FmtText {
+	if message.Type == clipboard.FmtText {
 		messageType = websocket.TextMessage
 	} else {
 		messageType = websocket.BinaryMessage
 	}
-	
-	fmt.Println(string(cl.clipboard.UniClipboard.Data))
-	err := cl.conn.WriteMessage(messageType, cl.clipboard.UniClipboard.Data)
+
+	err := cl.conn.WriteMessage(messageType,message.Data)
 	if err != nil {
 		return err
 	}
@@ -35,16 +33,17 @@ func (cl *Client) sendMessage() error {
 }
 
 func (cl *Client) receiveMessage() *uniclipboard.Message {
-	messageType, message, err := cl.conn.ReadMessage()
-	if err != nil {
-		cl.logger.Println("read: ", err)
-		cl.close()
-		return nil
-	}
-	cl.newWrittenDataUni <- struct{}{}	
-	return &uniclipboard.Message{
-		Type: clipboard.Format(messageType),
-		Data: message,
+	for {
+		messageType, message, err := cl.conn.ReadMessage()
+		if err != nil {
+			cl.logger.Println("read: ", err)
+			cl.close()
+			return nil
+		}
+		cl.clipboard.UniClipboard <-  &uniclipboard.Message{
+			Type: clipboard.Format(messageType),
+			Data: message,
+		}
 	}
 }
 
@@ -56,11 +55,3 @@ func (cl *Client) close() error {
 	}
 	return nil
 }
-
-func (cl *Client) reciveWebsocketMessagesHandler() {
-	for {
-		cl.clipboard.UniClipboard = cl.receiveMessage()
-		fmt.Println(string(cl.clipboard.UniClipboard.Data))
-	}
-}
-

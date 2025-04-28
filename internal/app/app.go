@@ -6,7 +6,6 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/mohamidsaiid/uniclipboard/internal/ADT"
 	"github.com/mohamidsaiid/uniclipboard/internal/client"
 	uniclipboard "github.com/mohamidsaiid/uniclipboard/internal/clipboard"
 	"github.com/mohamidsaiid/uniclipboard/internal/discovery"
@@ -17,7 +16,7 @@ func StartApp(baseURL string, port string) error {
 start:
 	log.Println("Starting application...")
 
-	clipboard, err := uniclipboard.NewClipboard(time.Minute * 15, make(ADT.Sig))
+	clipboard, err := uniclipboard.NewClipboard(time.Minute * 15)
 	if err != nil {
 		return err
 	}

@@ -17,7 +17,7 @@ func StartApp(baseURL string, port string) error {
 start:
 	log.Println("Starting application...")
 
-	clipboard, err := uniclipboard.NewClipboard(time.Minute * 15, make(ADT.Sig))
+	clipboard, err := uniclipboard.NewClipboard(time.Minute*15, make(ADT.Sig))
 	if err != nil {
 		return err
 	}
@@ -35,8 +35,6 @@ start:
 	time.Sleep(2 * time.Second)
 	log.Println("Connecting to server...")
 
-	link.Scheme = "ws"
-	link.Path = "/api/v1/clipboard"
 	cl, err := client.NewClient(link, clipboard)
 	if err != nil {
 		return err

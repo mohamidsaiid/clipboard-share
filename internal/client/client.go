@@ -12,31 +12,32 @@ import (
 )
 
 type Client struct {
-	conn      *websocket.Conn
-	logger    *log.Logger
-	closeConn ADT.Sig 
-	clipboard *uniclipboard.UniClipboard
-	newWrittenDataUni ADT.Sig 
+	conn              *websocket.Conn
+	logger            *log.Logger
+	closeConn         ADT.Sig
+	clipboard         *uniclipboard.UniClipboard
+	newWrittenDataUni ADT.Sig
 }
 
 func NewClient(URL url.URL, clipboard *uniclipboard.UniClipboard) (*Client, error) {
+	URL.Scheme = "ws"
+	URL.Path = "/api/v1/clipboard"
 	conn, err := newWebsocketConn(URL)
 	if err != nil {
 		return nil, err
 	}
-	
 
 	return &Client{
-		conn:      conn,
-		logger:    log.New(os.Stdout, "", log.Ldate|log.Ltime),
-		closeConn: make(ADT.Sig),
-		clipboard: clipboard,
+		conn:              conn,
+		logger:            log.New(os.Stdout, "", log.Ldate|log.Ltime),
+		closeConn:         make(ADT.Sig),
+		clipboard:         clipboard,
 		newWrittenDataUni: make(ADT.Sig),
 	}, nil
 }
 
 func (cl *Client) StartClient() error {
-	go cl.reciveWebsocketMessagesHandler()
+	go cl.receiveMessage()
 	go cl.clipboard.WatchHandler()
 
 	for {

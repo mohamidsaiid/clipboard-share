@@ -7,15 +7,16 @@ import (
 	"os"
 
 	"github.com/gorilla/websocket"
+	"github.com/mohamidsaiid/uniclipboard/internal/ADT"
 	"github.com/mohamidsaiid/uniclipboard/internal/clipboard"
 )
 
 type Client struct {
 	conn      *websocket.Conn
 	logger    *log.Logger
-	closeConn chan bool
+	closeConn ADT.Sig 
 	clipboard *uniclipboard.UniClipboard
-	newWrittenDataUni chan struct{}
+	newWrittenDataUni ADT.Sig 
 }
 
 func NewClient(URL url.URL, clipboard *uniclipboard.UniClipboard) (*Client, error) {
@@ -28,9 +29,9 @@ func NewClient(URL url.URL, clipboard *uniclipboard.UniClipboard) (*Client, erro
 	return &Client{
 		conn:      conn,
 		logger:    log.New(os.Stdout, "", log.Ldate|log.Ltime),
-		closeConn: make(chan bool),
+		closeConn: make(ADT.Sig),
 		clipboard: clipboard,
-		newWrittenDataUni: make(chan struct{}),
+		newWrittenDataUni: make(ADT.Sig),
 	}, nil
 }
 
@@ -41,10 +42,15 @@ func (cl *Client) StartClient() error {
 	for {
 		select {
 		case <-cl.clipboard.NewDataWrittenLocaly:
+			log.Println("new written data localy signal recieved")
+			log.Println(string(cl.clipboard.UniClipboard.Data))
 			cl.sendMessage()
 		case <-cl.newWrittenDataUni:
+			log.Println("new written data uni signal recieved")
+			log.Println(string(cl.clipboard.UniClipboard.Data))
 			go cl.clipboard.WriteTemporaryHanlder()
 		case <-cl.closeConn:
+			log.Println("the conncetion is closed signal recieved")
 			return errors.New("closing connection")
 		}
 	}

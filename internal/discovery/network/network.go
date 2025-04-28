@@ -12,8 +12,8 @@ type Servers struct {
 	Wg  *sync.WaitGroup
 	BaseURL string
 	Port string
-	ValidServer chan(url.URL)
-	FinishedReqs chan(bool)
+	ValidServer chan url.URL
+	FinishedReqs chan bool
 }
 
 func (s *Servers)RequestServer(url url.URL) (*http.Response, error){
@@ -30,12 +30,9 @@ func (s *Servers) ValidateServer(resp *http.Response) (bool, error) {
 	var dst struct {
 		Ok bool `json:"ok"`
 	}	
-	err := jsonParser.ReadJSON(resp, dst)
+	err := jsonParser.ReadJSON(resp, &dst)
 	if err != nil {
 		return false, err
 	}
-	if dst.Ok {
-		return true, nil
-	}
-	return false, nil
+	return dst.Ok, nil
 }

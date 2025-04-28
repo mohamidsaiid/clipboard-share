@@ -48,7 +48,7 @@ func (cl *Client) receiveMessage() *uniclipboard.Message {
 
 func (cl *Client) close() error {
 	err := cl.conn.Close()
-	cl.closeConn <- true
+	cl.closeConn <- struct{}{}
 	if err != nil {
 		return err
 	}

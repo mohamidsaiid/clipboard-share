@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/mohamidsaiid/uniclipboard/internal/ADT"
 	"golang.design/x/clipboard"
 )
 
@@ -18,25 +19,31 @@ type UniClipboard struct {
 	// the uniclipboard has a timeout
 	TemporaryClipboardTimeout time.Duration
 	// to indicate there is a new data written to the local clipboard
-	NewDataWrittenLocaly chan struct{}
+	NewDataWrittenLocaly ADT.Sig 
 }
 
-func init() {
+func NewClipboard(timeOut time.Duration, sig ADT.Sig) (*UniClipboard, error) {
 	err := clipboard.Init()
 	if err != nil {
 		log.Fatalln(err)
 	}
+	return &UniClipboard{
+		UniClipboard: nil,
+		TemporaryClipboardTimeout: timeOut,
+		NewDataWrittenLocaly: sig,
+	}, nil
 }
 
 func (uc *UniClipboard) watchTextHandler() {
 	for {
 		changed := clipboard.Watch(context.Background(), clipboard.FmtText)
-
+		
+		data := <- changed
 		uc.UniClipboard = &Message{
 			Type: clipboard.FmtText,
+			Data: data,
 		} 
 
-		uc.UniClipboard.Data = <-changed
 		uc.NewDataWrittenLocaly <- struct{}{}
 	}
 }
@@ -45,11 +52,12 @@ func (uc *UniClipboard) watchImageHandler() {
 	for {
 		changed := clipboard.Watch(context.Background(), clipboard.FmtImage)
 
+		data := <- changed
 		uc.UniClipboard = &Message{
 			Type: clipboard.FmtImage,
+			Data : data,
 		}
 		
-		uc.UniClipboard.Data = <-changed
 		uc.NewDataWrittenLocaly <- struct{}{}
 	}
 }
@@ -76,7 +84,6 @@ func (uc *UniClipboard) WriteTemporaryHanlder() {
         log.Fatal("UniClipboard instance is nil")
         return
     }
-    log.Printf("UniClipboard state: %+v", uc.UniClipboard)
 	// save the latest clipboard data
 	latestClipboardData := uc.ReadHanlder(uc.UniClipboard.Type)
 	// write the new uniclipboard data	

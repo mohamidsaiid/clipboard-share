@@ -1,6 +1,7 @@
 package client
 
 import (
+	"fmt"
 	"net/url"
 
 	"github.com/gorilla/websocket"
@@ -24,6 +25,7 @@ func (cl *Client) sendMessage() error {
 		messageType = websocket.BinaryMessage
 	}
 	
+	fmt.Println(string(cl.clipboard.UniClipboard.Data))
 	err := cl.conn.WriteMessage(messageType, cl.clipboard.UniClipboard.Data)
 	if err != nil {
 		return err
@@ -58,6 +60,7 @@ func (cl *Client) close() error {
 func (cl *Client) reciveWebsocketMessagesHandler() {
 	for {
 		cl.clipboard.UniClipboard = cl.receiveMessage()
+		fmt.Println(string(cl.clipboard.UniClipboard.Data))
 	}
 }
 

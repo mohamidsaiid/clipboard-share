@@ -11,7 +11,9 @@ import (
 
 func newWebsocketConn(url url.URL, sk string) (*websocket.Conn, error) {
 	rqHeader := http.Header{}
-	rqHeader.Add("Authorization", fmt.Sprint("Bearer ",sk))
+	authKey := fmt.Sprint("Bearer ",sk)
+	rqHeader.Add("Authorization", authKey)
+
 	conn, _, err := websocket.DefaultDialer.Dial(url.String(), rqHeader)
 	if err != nil {
 		return nil, err

@@ -3,8 +3,6 @@ package server
 import (
 	"net/http"
 	"strings"
-
-	"golang.org/x/crypto/bcrypt"
 )
 
 func (s *Server)ValidateUser(r *http.Request) (valid bool, exists bool){
@@ -15,9 +13,7 @@ func (s *Server)ValidateUser(r *http.Request) (valid bool, exists bool){
 		return
 	}
 	hashedSecretKey := user.SecretKey
-	err := bcrypt.CompareHashAndPassword([]byte(hashedSecretKey), providedSecretKey)
-
-	return err == nil, true
+	return hashedSecretKey == string(providedSecretKey), true
 }
 
 func (s *Server) getSecretKey(r *http.Request) []byte {

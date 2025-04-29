@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 	"sync"
-	"time"
 
 	"github.com/mohamidsaiid/uniclipboard/internal/ADT"
 	"golang.design/x/clipboard"
@@ -17,14 +16,12 @@ type Message struct {
 
 type UniClipboard struct {
 	UniClipboard Message
-	// the uniclipboard has a timeout
-	TemporaryClipboardTimeout time.Duration
 	// to indicate there is a new data written to the local clipboard
 	NewDataWrittenLocaly ADT.Sig
 	Mutex                *sync.Mutex
 }
 
-func NewClipboard(timeOut time.Duration, sig ADT.Sig) (*UniClipboard, error) {
+func NewClipboard(sig ADT.Sig) (*UniClipboard, error) {
 	err := clipboard.Init()
 	if err != nil {
 		log.Fatalln(err)
@@ -33,7 +30,6 @@ func NewClipboard(timeOut time.Duration, sig ADT.Sig) (*UniClipboard, error) {
 
 	return &UniClipboard{
 		UniClipboard:              Message{},
-		TemporaryClipboardTimeout: timeOut,
 		NewDataWrittenLocaly:      sig,
 		Mutex:                     &sync.Mutex{},
 	}, nil
@@ -90,25 +86,3 @@ func (uc *UniClipboard) ReadHanlder(messageType clipboard.Format) Message {
 		Data: data,
 	}
 }
-/*
-func (uc *UniClipboard) WriteTemporaryHanlder() {
-	/*if uc.UniClipboard == {
-		log.Fatal("UniClipboard instance is nil")
-		return
-	}
-	// save the latest clipboard data
-	latestClipboardData := uc.ReadHanlder(uc.UniClipboard.Type)
-	// write the new uniclipboard data
-	uc.Mutex.Lock()
-	uc.writeHandler(uc.UniClipboard)
-	uc.Mutex.Unlock()
-	// wait for the specified time till the uniclipboard is vanished
-	time.Sleep(uc.TemporaryClipboardTimeout)
-	// rewrite the old localclipboard data
-	uc.Mutex.Lock()
-	uc.writeHandler(latestClipboardData)
-	// remove the data from the uniclipboard
-	uc.UniClipboard = Message{}
-	uc.Mutex.Unlock()
-}
-*/

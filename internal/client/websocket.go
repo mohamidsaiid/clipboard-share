@@ -30,6 +30,7 @@ func (cl *Client) sendMessage() error {
 	log.Println("sending message")
 	log.Println(cl.clipboard.UniClipboard.Type, string(cl.clipboard.UniClipboard.Data))
 
+	log.Println("client/websocket new sending message of type ...", messageType)
 	err := cl.conn.WriteMessage(messageType, cl.clipboard.UniClipboard.Data)
 	if err != nil {
 		return err

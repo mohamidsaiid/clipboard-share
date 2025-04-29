@@ -48,7 +48,7 @@ func (uc *UniClipboard) watchTextHandler() {
 
 		uc.Mutex.Lock()
 		uc.UniClipboard.Data = data
-		uc.UniClipboard.Type = clipboard.FmtImage
+		uc.UniClipboard.Type = clipboard.FmtText
 		uc.NewDataWrittenLocaly <- struct{}{}
 		uc.Mutex.Unlock()
 	}

@@ -93,6 +93,7 @@ func (uc *UniClipboard) WriteTemporaryHanlder() {
 		return
 	}
 	*/
+	uc.Mutex.Lock()
 	// save the latest clipboard data
 	latestClipboardData := uc.ReadHanlder(uc.UniClipboard.Type)
 	// write the new uniclipboard data
@@ -103,4 +104,5 @@ func (uc *UniClipboard) WriteTemporaryHanlder() {
 	uc.writeHandler(latestClipboardData)
 	// remove the data from the uniclipboard
 	uc.UniClipboard = Message{}
+	uc.Mutex.Unlock()
 }

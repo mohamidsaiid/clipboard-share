@@ -20,13 +20,16 @@ func newWebsocketConn(url url.URL) (*websocket.Conn, error) {
 
 func (cl *Client) sendMessage() error {
 	var messageType int
+
 	if cl.clipboard.UniClipboard.Type == clipboard.FmtText {
 		messageType = websocket.TextMessage
 	} else {
 		messageType = websocket.BinaryMessage
 	}
+
 	log.Println("sending message")
-	log.Println(string(cl.clipboard.UniClipboard.Data))
+	log.Println(cl.clipboard.UniClipboard.Type, string(cl.clipboard.UniClipboard.Data))
+
 	err := cl.conn.WriteMessage(messageType, cl.clipboard.UniClipboard.Data)
 	if err != nil {
 		return err
@@ -35,7 +38,7 @@ func (cl *Client) sendMessage() error {
 	return nil
 }
 
-func (cl *Client) receiveMessage(){
+func (cl *Client) receiveMessage() {
 	for {
 		messageType, message, err := cl.conn.ReadMessage()
 		if err != nil {
@@ -45,9 +48,15 @@ func (cl *Client) receiveMessage(){
 		}
 
 		log.Println("client/websocket new received message")
-		log.Println(cl.clipboard.UniClipboard)
+		log.Println(messageType, string(message))
 
 		cl.newWrittenDataUni <- struct{}{}
+
+		if messageType == websocket.TextMessage {
+			messageType = int(clipboard.FmtText)
+		} else {
+			messageType = int(clipboard.FmtImage)
+		}
 
 		cl.clipboard.Mutex.Lock()
 		cl.clipboard.UniClipboard.Data = message

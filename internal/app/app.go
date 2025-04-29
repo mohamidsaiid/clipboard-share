@@ -10,6 +10,7 @@ import (
 	"github.com/mohamidsaiid/uniclipboard/internal/client"
 	uniclipboard "github.com/mohamidsaiid/uniclipboard/internal/clipboard"
 	"github.com/mohamidsaiid/uniclipboard/internal/discovery"
+	"github.com/mohamidsaiid/uniclipboard/internal/models"
 	"github.com/mohamidsaiid/uniclipboard/internal/server"
 )
 
@@ -27,7 +28,11 @@ start:
 
 	if err != nil {
 		log.Println(err)
-		srvr := server.NewServer(port, clipboard)
+		userModel, err := models.InitateDatabase("users.db")
+		if err != nil {
+			return err
+		}
+		srvr := server.NewServer(port, clipboard, userModel)
 		go srvr.Start()
 		link = url.URL{Scheme: "ws", Host: fmt.Sprintf("127.0.0.1%s", port), Path: "/api/v1/clipboard"}
 	}

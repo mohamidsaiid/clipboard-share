@@ -34,7 +34,7 @@ func (srvr *Server) healthcheckHandler(w http.ResponseWriter, r *http.Request) {
 func (srvr *Server) clipboardHandler(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		srvr.logError(r, err)
+		srvr.logError(err)
 		return
 	}
 	defer conn.Close()
@@ -46,7 +46,7 @@ func (srvr *Server) clipboardHandler(w http.ResponseWriter, r *http.Request) {
 	for {
 		messageType, message, err := conn.ReadMessage()
 		if err != nil {
-			srvr.logError(r, err)
+			srvr.logError(err)
 			mutex.Lock()
 			delete(srvr.Clients, conn)
 			mutex.Unlock()

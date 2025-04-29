@@ -1,7 +1,6 @@
 package client
 
 import (
-	"log"
 	"net/url"
 
 	"github.com/gorilla/websocket"
@@ -13,8 +12,7 @@ func newWebsocketConn(url url.URL) (*websocket.Conn, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Println("connected to the server")
-	log.Println("url: ", url.String())
+
 	return conn, nil
 }
 
@@ -27,10 +25,6 @@ func (cl *Client) sendMessage() error {
 		messageType = websocket.BinaryMessage
 	}
 
-	log.Println("sending message")
-	log.Println(cl.clipboard.UniClipboard.Type, string(cl.clipboard.UniClipboard.Data))
-
-	log.Println("client/websocket new sending message of type ...", messageType)
 	err := cl.conn.WriteMessage(messageType, cl.clipboard.UniClipboard.Data)
 	if err != nil {
 		return err
@@ -47,9 +41,6 @@ func (cl *Client) receiveMessage() {
 			cl.close()
 			continue
 		}
-
-		log.Println("client/websocket new received message")
-		log.Println(messageType, string(message))
 
 		cl.newWrittenDataUni <- struct{}{}
 

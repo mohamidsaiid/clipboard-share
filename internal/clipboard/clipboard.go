@@ -2,7 +2,6 @@ package uniclipboard
 
 import (
 	"context"
-	"log"
 	"sync"
 
 	"github.com/mohamidsaiid/uniclipboard/internal/ADT"
@@ -24,7 +23,6 @@ type UniClipboard struct {
 func NewClipboard(sig ADT.Sig) (*UniClipboard, error) {
 	err := clipboard.Init()
 	if err != nil {
-		log.Fatalln(err)
 		return nil, err
 	}
 
@@ -40,8 +38,6 @@ func (uc *UniClipboard) watchTextHandler() {
 		changed := clipboard.Watch(context.Background(), clipboard.FmtText)
 
 		data := <-changed
-		log.Println("clipboard package new text data been written to the clipboard internally")
-		log.Println(data)
 
 		uc.Mutex.Lock()
 		uc.UniClipboard.Data = data
@@ -56,8 +52,6 @@ func (uc *UniClipboard) watchImageHandler() {
 		changed := clipboard.Watch(context.Background(), clipboard.FmtImage)
 
 		data := <-changed
-		log.Println("clipboard package new image data been written to the clipboard internally")
-		log.Println(data)
 
 		uc.Mutex.Lock()
 		uc.UniClipboard.Data = data
@@ -74,13 +68,12 @@ func (uc *UniClipboard) WatchHandler() {
 }
 
 func (uc *UniClipboard) WriteHandler(data Message) {
-	log.Println("clipboard package new data is going to be written to the clipboard ", data)
 	clipboard.Write(data.Type, data.Data)
 }
 
 func (uc *UniClipboard) ReadHanlder(messageType clipboard.Format) Message {
 	data := clipboard.Read(messageType)
-	log.Println("clipboard packag data been read from the internal clipboard")
+
 	return Message{
 		Type: messageType,
 		Data: data,

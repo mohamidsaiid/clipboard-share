@@ -43,17 +43,16 @@ func (cl *Client) StartClient() error {
 	for {
 		select {
 		case <-cl.clipboard.NewDataWrittenLocaly:
-			log.Println("new written data localy signal recieved")
-			log.Println(string(cl.clipboard.UniClipboard.Data))
-			log.Println(cl.sendMessage())
+			err := cl.sendMessage()
+			if err != nil {
+				cl.logger.Println("send: ", err)
+			}
 		case <-cl.newWrittenDataUni:
-			log.Println("new written data uni signal recieved")
-			log.Println(string(cl.clipboard.UniClipboard.Data))
 			cl.clipboard.Mutex.Lock()
 			cl.clipboard.WriteHandler(cl.clipboard.UniClipboard)
 			cl.clipboard.Mutex.Unlock()
 		case <-cl.closeConn:
-			log.Println("the conncetion is closed signal recieved")
+			cl.logger.Println("the conncetion is closed signal recieved")
 			return errors.New("closing connection")
 		}
 	}

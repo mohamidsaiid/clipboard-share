@@ -7,13 +7,17 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (s *Server)ValidateUser(r *http.Request) bool{
+func (s *Server)ValidateUser(r *http.Request) (valid bool, exists bool){
 	providedSecretKey := s.getSecretKey(r)	
-	hashedSecretKey := s.user.Get().SecretKey
-
+	user, ok := s.user.Get()
+	if !ok {
+		exists = false
+		return
+	}
+	hashedSecretKey := user.SecretKey
 	err := bcrypt.CompareHashAndPassword([]byte(hashedSecretKey), providedSecretKey)
 
-	return err == nil
+	return err == nil, true
 }
 
 func (s *Server) getSecretKey(r *http.Request) []byte {

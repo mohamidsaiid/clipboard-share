@@ -29,13 +29,20 @@ func (u *UsersModel) Update(secretKey string) error {
 	if err != nil {
 		return err
 	}
-	var user = u.Get()
+	user, exists := u.Get()
+	if !exists {
+		u.DB.Create(&Users{SecretKey: string(hashed)})
+		return nil
+	}
 	u.DB.Model(&user).Update("secretkey", hashed)
 	return nil
 }
 
-func (u *UsersModel) Get() (Users) {
+func (u *UsersModel) Get() (Users, bool) {
 	var user Users
 	u.DB.First(&user, 1)
-	return user
+	if user.ID == 0 {
+		return Users{}, false
+	}
+	return user, true
 }

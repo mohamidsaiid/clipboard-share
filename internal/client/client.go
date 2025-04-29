@@ -19,10 +19,10 @@ type Client struct {
 	newWrittenDataUni ADT.Sig
 }
 
-func NewClient(URL url.URL, clipboard *uniclipboard.UniClipboard) (*Client, error) {
+func NewClient(URL url.URL, clipboard *uniclipboard.UniClipboard, sk string) (*Client, error) {
 	URL.Scheme = "ws"
 	URL.Path = "/api/v1/clipboard"
-	conn, err := newWebsocketConn(URL)
+	conn, err := newWebsocketConn(URL, sk)
 	if err != nil {
 		return nil, err
 	}

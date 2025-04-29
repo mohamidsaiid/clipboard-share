@@ -11,10 +11,11 @@ import (
 	uniclipboard "github.com/mohamidsaiid/uniclipboard/internal/clipboard"
 	"github.com/mohamidsaiid/uniclipboard/internal/discovery"
 	"github.com/mohamidsaiid/uniclipboard/internal/models"
+	"github.com/mohamidsaiid/uniclipboard/internal/secretkey"
 	"github.com/mohamidsaiid/uniclipboard/internal/server"
 )
 
-func StartApp(baseURL string, port string) error {
+func StartApp(baseURL string, port string, secretKeyPort string, originalSecretKey string) error {
 start:
 	log.Println("Starting application...")
 
@@ -23,15 +24,24 @@ start:
 		return err
 	}
 
+	userModel, err := models.InitateDatabase("users.db")
+	if err != nil {
+		return err
+	}
+
+	go secretkey.StartSecertKeyWebServer(secretKeyPort, userModel)	
+
+	sk, exists := userModel.Get()
+	if !exists {
+		fmt.Printf("please visit \"localhost%s/secretkey\" \nand provide a the new secretkey to be used all over your devices\n", secretKeyPort)
+		userModel.Update(originalSecretKey)
+		sk.SecretKey = originalSecretKey
+	}
 	log.Println("discovering valid server...")
 	link, err := discovery.ValidServer(baseURL, port, "/api/v1/healthcheck", 2, 254)
 
 	if err != nil {
 		log.Println(err)
-		userModel, err := models.InitateDatabase("users.db")
-		if err != nil {
-			return err
-		}
 		srvr := server.NewServer(port, clipboard, userModel)
 		go srvr.Start()
 		link = url.URL{Scheme: "ws", Host: fmt.Sprintf("127.0.0.1%s", port), Path: "/api/v1/clipboard"}
@@ -40,7 +50,7 @@ start:
 	time.Sleep(2 * time.Second)
 	log.Println("Connecting to server...")
 
-	cl, err := client.NewClient(link, clipboard)
+	cl, err := client.NewClient(link, clipboard, sk.SecretKey)
 	if err != nil {
 		return err
 	}

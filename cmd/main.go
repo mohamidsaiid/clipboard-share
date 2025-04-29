@@ -15,5 +15,5 @@ func main() {
 		return
 	}
 	
-	log.Println(app.StartApp(os.Getenv("BASE_URL"), os.Getenv("PORT")))
+	log.Println(app.StartApp(os.Getenv("BASE_URL"), os.Getenv("PORT"), os.Getenv("SECRETKEY_PORT"), os.Getenv("BASIC_SECRETKEY")))
 }

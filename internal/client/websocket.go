@@ -1,14 +1,18 @@
 package client
 
 import (
+	"fmt"
+	"net/http"
 	"net/url"
 
 	"github.com/gorilla/websocket"
 	"golang.design/x/clipboard"
 )
 
-func newWebsocketConn(url url.URL) (*websocket.Conn, error) {
-	conn, _, err := websocket.DefaultDialer.Dial(url.String(), nil)
+func newWebsocketConn(url url.URL, sk string) (*websocket.Conn, error) {
+	rqHeader := http.Header{}
+	rqHeader.Add("Authorization", fmt.Sprint("Bearer ",sk))
+	conn, _, err := websocket.DefaultDialer.Dial(url.String(), rqHeader)
 	if err != nil {
 		return nil, err
 	}

@@ -49,7 +49,9 @@ func (cl *Client) StartClient() error {
 		case <-cl.newWrittenDataUni:
 			log.Println("new written data uni signal recieved")
 			log.Println(string(cl.clipboard.UniClipboard.Data))
-			go cl.clipboard.WriteTemporaryHanlder()
+			cl.clipboard.Mutex.Lock()
+			cl.clipboard.WriteHandler(cl.clipboard.UniClipboard)
+			cl.clipboard.Mutex.Unlock()
 		case <-cl.closeConn:
 			log.Println("the conncetion is closed signal recieved")
 			return errors.New("closing connection")

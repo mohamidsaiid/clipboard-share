@@ -17,7 +17,7 @@ func StartApp(baseURL string, port string) error {
 start:
 	log.Println("Starting application...")
 
-	clipboard, err := uniclipboard.NewClipboard(time.Minute*15, make(ADT.Sig))
+	clipboard, err := uniclipboard.NewClipboard(time.Second*10, make(ADT.Sig))
 	if err != nil {
 		return err
 	}

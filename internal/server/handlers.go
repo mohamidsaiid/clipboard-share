@@ -53,17 +53,16 @@ func (srvr *Server) clipboardHandler(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 
-		if messageType == websocket.BinaryMessage {
+		if messageType == websocket.TextMessage {
+			broadcast <- Message{sender: conn, data: uniclipboard.Message{
+				Type: clipboard.FmtText,
+				Data: message,
+			}}
+		} else {
 			broadcast <- Message{sender: conn, data: uniclipboard.Message{
 				Type: clipboard.FmtImage,
 				Data: message,
 			}}
-			if messageType == websocket.TextMessage {
-				broadcast <- Message{sender: conn, data: uniclipboard.Message{
-					Type: clipboard.FmtText,
-					Data: message,
-				}}
-			}
 		}
 	}
 }
@@ -71,6 +70,7 @@ func (srvr *Server) clipboardHandler(w http.ResponseWriter, r *http.Request) {
 func (srvr *Server) handleMessages() {
 	for {
 		message := <-broadcast
+
 		var messageType int
 		if message.data.Type == clipboard.FmtText {
 			messageType = websocket.TextMessage
@@ -95,6 +95,6 @@ func (srvr *Server) handleMessages() {
 }
 
 func (srvr *Server) lastCopiedData(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("last copied data"))
 }
-//, "test" : []any{"uniclip", srvr.clipboard}
-//, "test" : []any{"origiclip", srvr.clipboard}
+

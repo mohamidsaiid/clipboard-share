@@ -3,8 +3,10 @@ package uniclipboard
 import (
 	"context"
 	"log"
+	"sync"
 	"time"
 
+	"github.com/mohamidsaiid/uniclipboard/internal/ADT"
 	"golang.design/x/clipboard"
 )
 
@@ -14,33 +16,42 @@ type Message struct {
 }
 
 type UniClipboard struct {
-	UniClipboard   chan *Message
-	LocalClipboard chan *Message
+	UniClipboard Message
 	// the uniclipboard has a timeout
 	TemporaryClipboardTimeout time.Duration
 	// to indicate there is a new data written to the local clipboard
+	NewDataWrittenLocaly ADT.Sig
+	Mutex                *sync.Mutex
 }
 
-func NewClipboard(timeOut time.Duration) (*UniClipboard, error) {
+func NewClipboard(timeOut time.Duration, sig ADT.Sig) (*UniClipboard, error) {
 	err := clipboard.Init()
 	if err != nil {
 		log.Fatalln(err)
+		return nil, err
 	}
+
 	return &UniClipboard{
-		UniClipboard: nil,
+		UniClipboard:              Message{},
 		TemporaryClipboardTimeout: timeOut,
+		NewDataWrittenLocaly:      sig,
+		Mutex:                     &sync.Mutex{},
 	}, nil
 }
 
 func (uc *UniClipboard) watchTextHandler() {
 	for {
 		changed := clipboard.Watch(context.Background(), clipboard.FmtText)
-		
-		data := <- changed
-		uc.UniClipboard <- &Message{
-			Type: clipboard.FmtText,
-			Data: data,
-		} 
+
+		data := <-changed
+		log.Println("clipboard package new text data been written to the clipboard internally")
+		log.Println(data)
+
+		uc.Mutex.Lock()
+		uc.UniClipboard.Data = data
+		uc.UniClipboard.Type = clipboard.FmtText
+		uc.NewDataWrittenLocaly <- struct{}{}
+		uc.Mutex.Unlock()
 	}
 }
 
@@ -48,11 +59,16 @@ func (uc *UniClipboard) watchImageHandler() {
 	for {
 		changed := clipboard.Watch(context.Background(), clipboard.FmtImage)
 
-		data := <- changed
-		uc.UniClipboard <- &Message{
-			Type: clipboard.FmtImage,
-			Data : data,
-		}
+		data := <-changed
+		log.Println("clipboard package new image data been written to the clipboard internally")
+		log.Println(data)
+
+		uc.Mutex.Lock()
+		uc.UniClipboard.Data = data
+		uc.UniClipboard.Type = clipboard.FmtImage
+		uc.NewDataWrittenLocaly <- struct{}{}
+		uc.Mutex.Unlock()
+
 	}
 }
 
@@ -61,26 +77,38 @@ func (uc *UniClipboard) WatchHandler() {
 	go uc.watchTextHandler()
 }
 
-func (uc *UniClipboard) writeHandler(data Message) {
+func (uc *UniClipboard) WriteHandler(data Message) {
+	log.Println("clipboard package new data is going to be written to the clipboard ", data)
 	clipboard.Write(data.Type, data.Data)
 }
 
 func (uc *UniClipboard) ReadHanlder(messageType clipboard.Format) Message {
 	data := clipboard.Read(messageType)
+	log.Println("clipboard packag data been read from the internal clipboard")
 	return Message{
 		Type: messageType,
 		Data: data,
 	}
 }
-
-func (uc *UniClipboard) WriteTemporaryHanlder(message *Message) {
+/*
+func (uc *UniClipboard) WriteTemporaryHanlder() {
+	/*if uc.UniClipboard == {
+		log.Fatal("UniClipboard instance is nil")
+		return
+	}
 	// save the latest clipboard data
-	latestClipboardData := uc.ReadHanlder(message.Type)
-	// write the new uniclipboard data	
-	uc.writeHandler(*message)
+	latestClipboardData := uc.ReadHanlder(uc.UniClipboard.Type)
+	// write the new uniclipboard data
+	uc.Mutex.Lock()
+	uc.writeHandler(uc.UniClipboard)
+	uc.Mutex.Unlock()
 	// wait for the specified time till the uniclipboard is vanished
 	time.Sleep(uc.TemporaryClipboardTimeout)
 	// rewrite the old localclipboard data
+	uc.Mutex.Lock()
 	uc.writeHandler(latestClipboardData)
 	// remove the data from the uniclipboard
+	uc.UniClipboard = Message{}
+	uc.Mutex.Unlock()
 }
+*/

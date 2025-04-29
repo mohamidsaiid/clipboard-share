@@ -12,25 +12,26 @@ import (
 )
 
 type Client struct {
-	conn      *websocket.Conn
-	logger    *log.Logger
-	closeConn ADT.Sig 
-	clipboard *uniclipboard.UniClipboard
-	newWrittenDataUni ADT.Sig 
+	conn              *websocket.Conn
+	logger            *log.Logger
+	closeConn         ADT.Sig
+	clipboard         *uniclipboard.UniClipboard
+	newWrittenDataUni ADT.Sig
 }
 
 func NewClient(URL url.URL, clipboard *uniclipboard.UniClipboard) (*Client, error) {
+	URL.Scheme = "ws"
+	URL.Path = "/api/v1/clipboard"
 	conn, err := newWebsocketConn(URL)
 	if err != nil {
 		return nil, err
 	}
-	
 
 	return &Client{
-		conn:      conn,
-		logger:    log.New(os.Stdout, "", log.Ldate|log.Ltime),
-		closeConn: make(ADT.Sig),
-		clipboard: clipboard,
+		conn:              conn,
+		logger:            log.New(os.Stdout, "", log.Ldate|log.Ltime),
+		closeConn:         make(ADT.Sig),
+		clipboard:         clipboard,
 		newWrittenDataUni: make(ADT.Sig),
 	}, nil
 }
@@ -41,14 +42,16 @@ func (cl *Client) StartClient() error {
 
 	for {
 		select {
-		case message:= <-cl.clipboard.LocalClipboard:
+		case <-cl.clipboard.NewDataWrittenLocaly:
 			log.Println("new written data localy signal recieved")
-			log.Println(string(message.Data))
-			cl.sendMessage(message)
-		case message := <-cl.clipboard.UniClipboard:
+			log.Println(string(cl.clipboard.UniClipboard.Data))
+			log.Println(cl.sendMessage())
+		case <-cl.newWrittenDataUni:
 			log.Println("new written data uni signal recieved")
-			log.Println(string(message.Data))
-			go cl.clipboard.WriteTemporaryHanlder(message)
+			log.Println(string(cl.clipboard.UniClipboard.Data))
+			cl.clipboard.Mutex.Lock()
+			cl.clipboard.WriteHandler(cl.clipboard.UniClipboard)
+			cl.clipboard.Mutex.Unlock()
 		case <-cl.closeConn:
 			log.Println("the conncetion is closed signal recieved")
 			return errors.New("closing connection")

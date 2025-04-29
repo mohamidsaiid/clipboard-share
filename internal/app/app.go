@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/mohamidsaiid/uniclipboard/internal/ADT"
 	"github.com/mohamidsaiid/uniclipboard/internal/client"
 	uniclipboard "github.com/mohamidsaiid/uniclipboard/internal/clipboard"
 	"github.com/mohamidsaiid/uniclipboard/internal/discovery"
@@ -16,7 +17,7 @@ func StartApp(baseURL string, port string) error {
 start:
 	log.Println("Starting application...")
 
-	clipboard, err := uniclipboard.NewClipboard(time.Minute * 15)
+	clipboard, err := uniclipboard.NewClipboard(time.Second*10, make(ADT.Sig))
 	if err != nil {
 		return err
 	}
@@ -34,8 +35,6 @@ start:
 	time.Sleep(2 * time.Second)
 	log.Println("Connecting to server...")
 
-	link.Scheme = "ws"
-	link.Path = "/api/v1/clipboard"
 	cl, err := client.NewClient(link, clipboard)
 	if err != nil {
 		return err

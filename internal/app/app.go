@@ -30,10 +30,10 @@ start:
 	}
 
 	go secretkey.StartSecertKeyWebServer(secretKeyPort, userModel)	
+	fmt.Printf("\n\nplease visit \"localhost%s/secretkey\" \nand provide a the new secretkey to be used all over your devices\n\n", secretKeyPort)
 
 	sk, exists := userModel.Get()
 	if !exists {
-		fmt.Printf("please visit \"localhost%s/secretkey\" \nand provide a the new secretkey to be used all over your devices\n", secretKeyPort)
 		userModel.Update(originalSecretKey)
 		sk.SecretKey = originalSecretKey
 	}

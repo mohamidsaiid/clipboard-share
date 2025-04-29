@@ -53,17 +53,16 @@ func (srvr *Server) clipboardHandler(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 
-		if messageType == websocket.BinaryMessage {
+		if messageType == websocket.TextMessage {
+			broadcast <- Message{sender: conn, data: uniclipboard.Message{
+				Type: clipboard.FmtText,
+				Data: message,
+			}}
+		} else {
 			broadcast <- Message{sender: conn, data: uniclipboard.Message{
 				Type: clipboard.FmtImage,
 				Data: message,
 			}}
-			if messageType == websocket.TextMessage {
-				broadcast <- Message{sender: conn, data: uniclipboard.Message{
-					Type: clipboard.FmtText,
-					Data: message,
-				}}
-			}
 		}
 	}
 }
@@ -71,6 +70,7 @@ func (srvr *Server) clipboardHandler(w http.ResponseWriter, r *http.Request) {
 func (srvr *Server) handleMessages() {
 	for {
 		message := <-broadcast
+
 		var messageType int
 		if message.data.Type == clipboard.FmtText {
 			messageType = websocket.TextMessage
@@ -95,18 +95,6 @@ func (srvr *Server) handleMessages() {
 }
 
 func (srvr *Server) lastCopiedData(w http.ResponseWriter, r *http.Request) {
-	//srvr.Logger.Println(*srvr.clipboard.UniClipboard)
-	//srvr.Logger.Println(*srvr.clipboard)
-	//srvr.Logger.Println(string(srvr.clipboard.ReadHanlder(clipboard.FmtText).Data))
-	var err error
-	if srvr.clipboard.UniClipboard.Data != nil {
-		err = jsonParser.WriteJSON(w, http.StatusOK, map[string]any{"message":string(srvr.clipboard.UniClipboard.Data)},nil)
-	} else {
-		err = jsonParser.WriteJSON(w, http.StatusOK, map[string]any{"message" : string(srvr.clipboard.ReadHanlder(clipboard.FmtText).Data)}, nil)
-	}
-	if err != nil {
-		srvr.serverErrorResponse(w, r, err)
-	}
+	w.Write([]byte("last copied data"))
 }
-//, "test" : []any{"uniclip", srvr.clipboard}
-//, "test" : []any{"origiclip", srvr.clipboard}
+

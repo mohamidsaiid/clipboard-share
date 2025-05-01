@@ -36,7 +36,7 @@ func NewClient(URL url.URL, clipboard *uniclipboard.UniClipboard, sk string) (*C
 	}, nil
 }
 
-func (cl *Client) StartClient() error {
+func (cl *Client) StartClient(errSignal chan error) {
 	go cl.receiveMessage()
 	go cl.clipboard.WatchHandler()
 
@@ -53,7 +53,8 @@ func (cl *Client) StartClient() error {
 			cl.clipboard.Mutex.Unlock()
 		case <-cl.closeConn:
 			cl.logger.Println("the conncetion is closed signal recieved")
-			return errors.New("closing connection")
+			errSignal <- errors.New("closing connection")
+			return
 		}
 	}
 }

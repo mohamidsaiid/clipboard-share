@@ -1,6 +1,7 @@
 package models
 
 import (
+	"github.com/mohamidsaiid/uniclipboard/internal/ADT"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -13,6 +14,7 @@ type Users struct {
 
 type UsersModel struct {
 	DB *gorm.DB
+	UpdateSignal ADT.Sig
 }
 
 func InitateDatabase(dbName string) (*UsersModel, error) {
@@ -35,6 +37,7 @@ func (u *UsersModel) Update(secretKey string) error {
 		return nil
 	}
 	u.DB.Model(&user).Update("secretkey", hashed)
+	u.UpdateSignal <- struct{}{}
 	return nil
 }
 

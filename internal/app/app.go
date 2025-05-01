@@ -15,6 +15,8 @@ import (
 	"github.com/mohamidsaiid/uniclipboard/internal/server"
 )
 
+var errSignal = make(chan error)
+
 func StartApp(baseURL string, port string, secretKeyPort string, originalSecretKey string) error {
 start:
 	log.Println("Starting application...")
@@ -40,6 +42,7 @@ start:
 	log.Println("discovering valid server...")
 	link, err := discovery.ValidServer(baseURL, port, "/api/v1/healthcheck", 2, 254)
 
+
 	if err != nil {
 		log.Println(err)
 		srvr := server.NewServer(port, clipboard, userModel)
@@ -50,12 +53,21 @@ start:
 	time.Sleep(2 * time.Second)
 	log.Println("Connecting to server...")
 
+newSecretKey:
+
 	cl, err := client.NewClient(link, clipboard, sk.SecretKey)
 	if err != nil {
 		return err
 	}
 
 	log.Println("Connected to server")
-	log.Println(cl.StartClient())
-	goto start
+	
+	go cl.StartClient(errSignal)
+
+	select {
+	case <-userModel.UpdateSignal :
+		goto newSecretKey
+	case <- errSignal :
+		goto start
+	}
 }

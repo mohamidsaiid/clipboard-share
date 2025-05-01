@@ -15,7 +15,10 @@ type Message struct {
 	data   uniclipboard.Message
 }
 
-var upgrader = websocket.Upgrader{}
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+}
 var broadcast = make(chan Message)
 var mutex = &sync.Mutex{}
 
